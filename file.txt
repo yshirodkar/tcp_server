@@ -1,0 +1,131 @@
+// package main
+
+// import (
+// 	// "log"
+// 	"net"
+// 	"net/http"
+// 	"bufio"
+// 	// "strconv"
+// 	_ "net/http/pprof"
+// 	"philo_server/common"
+// 	// "philo_server/controllers"
+// 	// psr "philo_server/router"
+// 	"philo_server/middleware"
+// 	"strings"
+// 	"fmt"
+// 	"time"
+// 	"math/rand"
+// 	"errors"
+// )
+
+// // Stack is the Go implementation of stack
+// type Stack []interface{}
+// var stack Stack
+// func main() {
+// 	// configGetter := common.GetConfigGetter("config/config.json.dist")
+
+// 	// Controllers
+// 	// healthController := common.GetHealthController()
+// 	// lifoStackcontroller := controllers.GetStackPopController(configGetter)
+
+// 	// router := psr.NewRouter(configGetter, healthController, lifoStackcontroller)
+// 	// var stack Stack
+//  	l, err := net.Listen("tcp4", ":8080")
+//     if err != nil {
+//             fmt.Println(err)
+//             return
+//     }
+//     defer l.Close()
+//     rand.Seed(time.Now().Unix())
+
+//     for {
+//             c, err := l.Accept()
+//             if err != nil {
+//                     fmt.Println(err)
+//                     return
+//             }
+//             handleConnection(c, stack)
+// 	}
+// 	// log.Fatal(http.ListenAndServe(":8080", corsMiddleware(router, configGetter)))
+// }
+
+// //Helper function that wraps the given router in CORS middleware
+// func corsMiddleware(h http.Handler, configGetter common.IConfigGetter) http.Handler {
+// 	allowed_origins := strings.Split(strings.TrimSpace(configGetter.MustGetConfigVar("CORS_ORIGINS")), ",")
+// 	allowed_headers := strings.Split(strings.TrimSpace(configGetter.MustGetConfigVar("CORS_HEADERS")), ",")
+// 	allowed_methods := []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+// 	return middleware.CorsMiddleware(h, allowed_origins, allowed_methods, allowed_headers)
+// }
+
+// func handleConnection(c net.Conn, stack Stack) {
+//         fmt.Printf("Serving %s\n", c.RemoteAddr().String())
+//         for {
+//                 netData, err := bufio.NewReader(c).ReadBytes('\n')
+//                 if err != nil {
+//                         fmt.Println(err)
+//                         return
+//                 }
+
+//                 val := netData[0]
+//                 fmt.Println("significant ", val)
+//                 var msb uint8 = 0
+//                 for val != 0 {
+//                 	val = val/10
+//                 	msb++
+//                 }
+//                 msb1 := val << msb
+//                 fmt.Println("significant bit ", msb1)
+//                 if msb1 == 0 {
+//                 	fmt.Println("Sending to push")
+//                 	stack.Push(netData)
+//                 } else if msb1 == 1 {
+//                 	fmt.Println("poping it")
+//                 	stack.Peek()
+//                 }
+//                 fmt.Println("done push pop", netData)
+//                 i := 0
+//                 var tmp []byte
+//                 for (i < len(netData)) {
+//                 	if (i == 0) {
+//                 			tmp = append(tmp, netData[0])
+//                 		} else {
+//                 			tmp = append(tmp, 0)
+//                 		}
+//                 	i++
+//                 }
+//                 result := []byte{0x00}
+//                 c.Write(result)
+//                 // w.Flush()
+//                 fmt.Printf("Send: %s", result)
+//         }
+//         c.Close()
+// }
+
+// // Push ...
+// func (s *Stack) Push(element interface{}) {
+// 	if len(*s) < 100 {
+// 		*s = append(*s, element)		
+// 	}
+// 	fmt.Println("stack length", len(*s))
+// 	fmt.Println("stack is ", *s)
+// }
+
+// // Pop removes the last element of this stack. If stack is empty, it returns
+// // -1 and an error.
+// func (s *Stack) Pop() (interface{}, error) {
+// 	if len(*s) > 0 {
+// 		popped := (*s)[len(*s)-1]
+// 		*s = (*s)[:len(*s)-1]
+// 		return popped, nil
+// 	}
+// 	return -1, errors.New("stack is empty")
+// }
+
+// // Peek returns the topmost element of the stack. If stack is empty, it returns
+// // -1 and an error.
+// func (s *Stack) Peek() (interface{}, error) {
+// 	if len(*s) > 0 {
+// 		return (*s)[len(*s)-1], nil
+// 	}
+// 	return -1, errors.New("stack is empty")
+// }

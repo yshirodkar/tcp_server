@@ -1,0 +1,6 @@
+package: philo_server
+import:
+- package: github.com/gorilla/handlers
+  version: ^1.4.0
+- package: github.com/gorilla/mux
+  version: ^1.7.0
