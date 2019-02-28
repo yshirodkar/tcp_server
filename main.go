@@ -6,7 +6,9 @@ import (
     "os"
     "errors"
     "bytes"
+    // "encoding/json"
     "encoding/gob"
+    // "bufio"
 )
 
 const (
@@ -18,11 +20,6 @@ const (
 type Stack []interface{}
 
 var stack Stack
-
-// // NewStack returns a new stack.
-// func NewStack() *Stack {
-//     return &Stack{}
-// }
 
 func main() {
     // Listen for incoming connections.
@@ -41,60 +38,54 @@ func main() {
             fmt.Println("Error accepting: ", err.Error())
             os.Exit(1)
         }
+        //logs an incoming message
+        fmt.Printf("Received message %s -> %s \n", conn.RemoteAddr(), conn.LocalAddr())
+
         // Handle connections in a new goroutine.
         go handleRequest(conn)
+        fmt.Println("I am done ")
     }
 }
 
 // Handles incoming requests.
 func handleRequest(conn net.Conn) {
     // Make a buffer to hold incoming data.
-    netData := make([]byte, 1024)
+    netData := make([]byte, 129)
     res := make([]byte, 1)
     // Read the incoming connection into the buffer.
-    // for {
-        datalen, err := conn.Read(netData)
+    lenVal, err := conn.Read(netData)
+    // netData, err := bufio.NewReader(conn).ReadBytes('\n')
+    fmt.Println("The input is ", netData)
+    fmt.Println("The length is ", lenVal)
         if err != nil {
             fmt.Println("Error reading:", err.Error())
         }
         msb1 := (netData[0] & 0xff) >> 7;
-        fmt.Printf("the msb1 is %08b\n", msb1)
-        fmt.Println("significant bit ", msb1)
         if msb1 == 0 {
-            fmt.Println("Sending to push", netData)
-            Push(netData)
+            fmt.Println("Sending to push")
+            Push(netData[:netData[0]+1])
             // Send a response back to person contacting us.
             conn.Write(res)
         } else if msb1 == 1 {
-            fmt.Println("poping it")
+            fmt.Println("poping it", stack)
             popRes, err := Peek()
+            fmt.Println("after poping it", stack)
             if err != nil {
                 fmt.Println("Error while popping stack", err.Error())
             } else {
-                // var buf bytes.Buffer
-                // enc := gob.NewEncoder(&buf)
-                // err := enc.Encode(popRes)
-                // var resData []byte
-                // for ind,val := range popRes {
-                //     resData = append(resData, val)
-                // }
-                // fmt.Println("res data ", resData)
                 b, ok := popRes.([]byte)
                 if !ok {
                     fmt.Println("This is wrong")
                 }
-                // b, _ := MarshalBytes(popRes)
-                b = b[:datalen]
-                fmt.Println("response byte ", b)
                 if b != nil {
-                    resPop := append(make([]byte, 1), b...)
-                    fmt.Println("the response is ", resPop)
+                    resPopb := b[:b[0]+1]
+                    fmt.Println("the response is ", resPopb)
                     // Send a response back to person contacting us.
-                    conn.Write(resPop)
+                    conn.Write(resPopb)
                 }
+                conn.Close()
             }
         }
-    // }
 
     // Close the connection when you're done with it.
     conn.Close()
@@ -125,9 +116,12 @@ func  Pop() (interface{}, error) {
 // Peek returns the topmost element of the stack. If stack is empty, it returns
 // -1 and an error.
 func Peek() (interface{}, error) {
- if len(stack) > 0 {
-     return (stack)[len(stack)-1], nil
- }
+    fmt.Println("stack is ", stack)
+    if len(stack) > 0 {
+        popped := (stack)[len(stack)-1]
+        stack = stack[:len(stack)-1]
+        return popped, nil
+    }
  return -1, errors.New("stack is empty")
 }
 
