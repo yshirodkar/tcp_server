@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"philo_server/common"
-	"net/http"
 	"errors"
+	"net/http"
+	"philo_server/common"
 )
 
 // Stack is the Go implementation of stack
@@ -23,11 +23,10 @@ func GetStackPopController() IStackPopController {
 	return &stackPopController{}
 }
 
-
 // Push ...
 func (s *Stack) Push(element interface{}) {
 	if len(*s) < 100 {
-		*s = append(*s, element)		
+		*s = append(*s, element)
 	}
 }
 
