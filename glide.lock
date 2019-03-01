@@ -1,8 +1,0 @@
-hash: 539910e0d340c75d6509fcc04ad2aab23f97ec7c168918ce76f578790d9b12aa
-updated: 2019-02-24T17:47:50.984873-07:00
-imports:
-- name: github.com/gorilla/handlers
-  version: 7e0847f9db758cdebd26c149d0ae9d5d0b9c98ce
-- name: github.com/gorilla/mux
-  version: a7962380ca08b5a188038c69871b8d3fbdf31e89
-testImports: []

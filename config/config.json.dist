@@ -1,4 +1,0 @@
-{
-	"CORS_ORIGINS" : "*",
-	"CORS_HEADERS" : "Authorization, Content-Type"
-}
