@@ -1,0 +1,152 @@
+#!/usr/bin/env ruby
+
+#
+# Intro
+# -----
+#
+# We recognize that doing a coding exercise at a whiteboard during an
+# interview is stressful and likely doesn't represent how you would do if you
+# were to work on a problem in your own time, in a comfortable environment.
+#
+# Instead, we're asking you to do spend a few hours on writing a stack server
+# that passes this test suite.
+#
+# This is a somewhat new way of doing technical interviews for us. Consider
+# this an alpha version, both in terms of the code as well as the process.
+# We're curious to hear what you think of the exercise and the process, and
+# how we can improve them.
+#
+# If you have questions or get stuck during the exercise, please reach out to
+# your interviewer on the private Slack channel that you received by email.
+#
+# Getting started
+# ---------------
+#
+# You'll need Ruby 2.3.0 or greater. Consider rvm [https://rvm.io/] to get
+# that installed. You can then run this test suite as follows:
+#
+#   $ ruby stack-test.rb
+#
+# If you want to run a specific test you can use -n, as follows:
+#
+#   $ ruby stack-test.rb -n test_single_request
+#
+# What to submit
+# --------------
+#
+# If you write a single file, send us that. If there are multiple files, put
+# them in a tarball or zipfile and send it along with instructions. Either
+# way, make sure to write any required instructions in the email or a supplied
+# README file.
+#
+# What we look at
+# ---------------
+#
+# Besides counting the number of tests that your server passes/fails, there is
+# no easily quantifiable procedure to evaluating someone's code.
+#
+# We will look for correctness by running a more extensive test suite than
+# this one; and, of course, by close code inspection. We pay attention to the
+# potential for race conditions, busy loops, the exact order in which your
+# server handles requests, performs stack operations, and issues responses. We
+# look at how you structured the code and how easy or hard it is to
+# understand.
+#
+# Finally: bad layout and indendation, lots of stale or commented out
+# debugging code, and trailing white space will make your code look
+# unnecessarily bad. Spaghetti code is frowned upon. Aim for code that you would
+# be proud to deploy to a live server.
+#
+# Stack server
+# ------------
+#
+# Write a server that manages a LIFO stack, supporting push and pop
+# operations. The server listens for requests from clients connecting over TCP
+# on port 8080. The server should respond to the request and then close the
+# connection.
+#
+# A push request pushes the given payload onto the stack. However, the stack
+# can have no more than 100 items on it. Push requests for a full stack should
+# block until stack space becomes available. (This is similar to how HTTP
+# long-polling works.)
+#
+# A pop request returns the top item from the stack to the client. If the
+# stack is empty, the pop request should block until an item becomes available
+# on the stack. (This, again, is similar to how HTTP long-polling works.)
+#
+# Both push and pop requests should be served (and their associated stack
+# operations performed) in the order in which they arrive fully. Note that
+# this is not necessarily the order in which the server accepts TCP
+# connections: some clients may be very slow to write their requests. Clients
+# that connect later may 'overtake' slower clients that are still writing
+# their request. Those fast clients should get their response before the slow
+# clients.
+#
+# The server should not have to juggle more than 100 clients simultaneously.
+# Additional client connections should be rejected by sending a single byte
+# response indicating busy-state and then immediately disconnected. (Strictly
+# speaking, this means that there is a very brief period during which the
+# server is handling more than 100 simultaneous connections--but only long
+# enough to dismiss those additional clients.)
+#
+# However, there is an exception to this rule. To prevent deadlock (eg, 100
+# pop requests all waiting for a push request that is always rejected) the
+# server must free up resources under specific conditions. If the server is
+# already handling 100 connections and a new client tries to connect, it must
+# disconnect the oldest client, provided their connection is older than 10
+# seconds. The server should only disconnect an old client when provoked by a
+# new incoming client connection that would otherwise have to be rejected. It
+# should not just disconnect old clients for no reason.
+#
+# A push request format is as follows. The first byte is the header. The rest
+# of the request is the payload. The most significant bit in the header byte
+# is 0; the 7 remaining bits are the length of the payload, in bytes. (As
+# such, the minimum size for a push request is 2 bytes: 1 header byte and 1
+# payload byte. The maximum size for a push request is 128 bytes: 1 header
+# byte and 127 payload bytes.)
+#
+# The format of a pop request is a single byte with the most significant bit
+# set to 1. The rest of the byte is ignored.
+#
+# The format of a push response is 1 byte, all zeros.
+#
+# The format of a pop response is 1 header byte, with the most significant bit
+# set to 0 and the rest of the payload indicating the payload size. The rest
+# of the response is the payload indicated number of bytes of payload.
+#
+# The format of a busy-state response is 1 byte, value 0xFF.
+#
+# You have to assume little-endian byte ordering, the default on x86
+# architectures. Bytes are sent in network order.
+#
+# You conveniently--and falsely--get to assume (and need to ensure) that
+# sockets are always closed completely. In other words, the client and the
+# server will not close the socket only for reading or writing, while keeping
+# the other half open. Phrased differently, if the return value of a read()
+# call on a socket indicates that the connection is closed, you can assume the
+# connection is also closed for writing. The inverse is true, also.
+#
+# Another simplifying assumption you get to make is that once you pop
+# something off the stack, that's it. You don't have to put it back on the
+# stack if it turns out you can't write the response to the client (for
+# example, if they disconnected).
+#
+# You might find it useful to implement a listening socket on, say, port 8081
+# that prints out the state of the stack (and other debugging info you might
+# need) and then closes the connection. This is optional, of course.
+#
+# This test suite assumes the server starts out with an empty stack. If this
+# test suite crashes you should restart the server before running the test
+# suite again. You are welcome to modify the server to implement a reset code
+# (probably by interpreting the otherwise ignored remaining 7 bits in a pop
+# request). Alternatively, have the server listen on another port over which
+# you can send reset commands in setup or teardown.
+#
+# This test suite is representative, but not comprehensive. We encourage you
+# to write more tests, but this is not required.
+#
+# You are welcome to write this in the language of your choice, ideally in
+# Ruby, Python, Go, or C -- but don't go learn a new language for the exercise.
+# You should choose the language you feel strongest in. You are encouraged to
+# use packages or libraries to deal with sockets.
+#
